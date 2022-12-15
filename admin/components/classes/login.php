@@ -6,6 +6,7 @@ class loginAdmin{
 
   private $defaultname  = 'admin';
   private $defaultpassword   = 'admin';
+
   private $result     = array();
   private $redirect   = '../login.php';
 
@@ -27,16 +28,50 @@ class loginAdmin{
 
     if( isset($_POST['name']) && isset($_POST['pass']) ){
 
+        require_once('rwdata.php');
+        $source = new rwdata;
+        $source->f = 'components/data/'; // ! change data folder for not logged in
+        $filename = 'config.json';
 
-        // .. find adminname in archive...
+        if (!(file_exists( $source->f . $filename ))) {
 
-        if( $_REQUEST['name'] != $this->defaultname ){
-          $this->result['chk'] = 0;
-          $this->result['msg'] = 'Login name not correct';
-        }
-        if( $_REQUEST['pass'] != $this->defaultpassword ){
-          $this->result['chk'] = 0;
-          $this->result['msg'] = $list; //'Login password not correct';
+          if( $_REQUEST['name'] != $this->defaultname ){
+            $this->result['chk'] = 0;
+            $this->result['msg'] = 'Login name not correct';
+          }else if( $_REQUEST['pass'] != $this->defaultpassword ){
+            $this->result['chk'] = 0;
+            $this->result['msg'] = 'Login password not correct'; // $list; //
+          }
+
+        }else{
+
+          $datalist = $source->dataFromFile( $filename );
+          $chk = 0;
+          $msg = '';
+          foreach($datalist as $key => $val){
+            if( $key != 'fields'){
+              foreach($datalist[$key] as $f => $c ){
+                if( $f == 'admin_name' && $c == $_REQUEST['name']){
+                  if( $datalist[$key]['admin_pass'] == $_REQUEST['pass']){
+                    $chk = 1;
+                    $msg = 'Login!';
+                    $_SESSION['adminname'] = $_REQUEST['name'];
+                    break;
+                  }else{
+                    $msg = 'Password does not match';
+                    break;
+                  }
+                }else{
+                  $msg = 'Name does not match';
+                }
+              }
+            }
+          }
+          $arr = ['chk' => $chk, 'msg' => $msg];
+          $this->result['chk'] = $chk;
+          $this->result['msg'] = $msg;
+
+          //$this->result['msg'] = $arr;
         }
 
         if( $this->result['chk'] == 0 ){
@@ -46,7 +81,7 @@ class loginAdmin{
     } else if( !isset( $_SESSION['adminname'] ) ){
 
       $this->result['chk'] = 0;
-      $this->result['msg'] = '';
+      $this->result['msg'] = 'No session..';
 
     }
 
@@ -65,7 +100,6 @@ class loginAdmin{
 
   }
 
-
   public function logoutAdmin(){
 
     unset($_SESSION['adminname']);
@@ -75,5 +109,6 @@ class loginAdmin{
     exit();
 
   }
+
 
 }

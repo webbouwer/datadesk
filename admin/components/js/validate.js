@@ -1,19 +1,24 @@
 /* validate email */
+
+
 function validateEmailForm(form) {
 
   let chk = {
     'status': 'send'
   };
   // get form vars
+
+  let formtype = form.find('#formtype').val();
   let fromName = form.find('#fromName').val();
   let fromEmail = form.find('#fromEmail').val();
   let toName = form.find('#toName').val();
   let toEmail = form.find('#toEmail').val();
   let subjectContent = form.find('#subjectContent').val();
   let htmlContent = form.find('#htmlContent').val();
+  let surveyid = form.find('#surveyid').val();
+  let profileid = form.find('#profileid').val();
 
   form.find('input, textarea').removeClass('incorrect');
-
   if (!isTextAndNum(fromName)) {
     chk.status = 'input';
     $.extend(chk, {
@@ -29,7 +34,7 @@ function validateEmailForm(form) {
   if (!isTextAndNum(toName)) {
     chk.status = 'input';
     $.extend(chk, {
-      'toName': 'The recipient name is not correct text'
+      'toName': 'The recipient name is empty or not correct text'
     });
   }
   if (!isEmail(toEmail)) {
@@ -50,19 +55,40 @@ function validateEmailForm(form) {
       'htmlContent': 'The content is empty'
     });
   }
+  if (formtype == 'survey' && profileid == '') {
+    chk.status = 'input';
+    $.extend(chk, {
+      'profileid': 'Their is no profile available'//, try selecting another profile or copy current profile, remove the old and try again'
+    });
+  }
+  if (formtype == 'survey' && surveyid == '') {
+    chk.status = 'input';
+    $.extend(chk, {
+      'surveyid': 'Their is no survey data available'//, try selecting another survey or copy current survey, remove the old and try again'
+    });
+  }
+
+
 
   let toSend = {
     'fromname': fromName, //'Webman tester',
     'fromemail': fromEmail, //'support@webdesigndenhaag.net',
+    'toname': toName, // recipient name,
     'toemail': toEmail, //'project@oddsized.org',
     'subject': subjectContent, //'Test email v2',
     'htmlcontent': htmlContent, //'<div><h1>Test email verstuurd met javascript en php</h1></div>',
+    'formtype': formtype, // survey or email,
+    'surveyid': surveyid, // survey id
+    'profileid': profileid, // profile id
   };
+
   $.extend(chk, {
     'tosend': toSend
   });
   return chk;
 }
+
+
 
 function isEmail(email) {
   //https://emailregex.com/

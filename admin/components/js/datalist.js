@@ -5,9 +5,14 @@ jQuery(function($){
 
     var datalist;
 
+    var surveyboard = new surveyEngine();
+
     var dataUrl = 'components/classes/datalist.php'; // protected
 
     getTableData = function( container = false ){
+
+        surveyboard.getSurveys();
+        surveyboard.getProfiles();
 
         $.ajax({
             type: 'POST',
@@ -26,6 +31,7 @@ jQuery(function($){
             if( data['fields'] ){
 
                 datalist = data;
+                surveyboard.surveydata = data;
 								let fields = data['fields'];
                 $.each(data, function(idx, obj) {
 
@@ -44,9 +50,10 @@ jQuery(function($){
                         $.each(obj, function( key, value) {
                           datalist[idx][key] = value;
                           if( key == 'id' || key == 'title' || key == 'desc')
-                            textdata += '<td class="element" data-nr="'+idx+'" data-field="'+key+'"><span class="inputbox">'+value+'</span></td>';
+                            textdata += '<td class="element field-'+key+'" data-nr="'+idx+'" data-field="'+key+'"><span class="inputbox">'+value+'</span></td>';
                         });
                         textdata += '<td><button type="button" class="small view">view</button>';
+                        textdata += '<button type="button" class="small edit">edit</button>';
                         textdata += '<button type="button" class="small copy">copy</button>';
                         textdata += '<button type="button" class="small delete">delete</button></td>';
                         textdata += '</tr>';
@@ -58,7 +65,9 @@ jQuery(function($){
                 if( !container ){
                   return datalist;
                 }else{
-                  container.html('<table id="datalist">'+fielddata + '' +textdata +'</table>');
+                  //$('body').prepend('<div id="messagebox"></div>');
+                  container.html('');
+                  container.append('<table id="datalist">'+fielddata + '' +textdata +'</table>');
                 }
 
             }
@@ -88,7 +97,7 @@ jQuery(function($){
 
 		}
 
-    function copyDataList( tocopy ){
+    function copyDataListRow( tocopy ){
 
 			var senddata =  { 'data': tocopy, 'action': 'copy' };
       //console.log( senddata.data );
@@ -149,15 +158,46 @@ jQuery(function($){
 			});
 
 		}
+    /*
+    function previewDataView( idx ){
+        //var fields = datalist['fields'];
+        return buildSurvey( idx, datalist );
+    }
+    */
 
 
-    function editDataRow( idx ){
+    function viewDataRow(rowid){
+
+      surveyboard.surveyID = rowid;
+      surveyboard.profileID = 0;
+      surveyboard.surveyPagePreview();
+      //let previewdata = surveyboard.surveyPagePreview( rowid, datalist );
+      //addOverlay('dataview', previewdata);
+      //surveyboard.runSurveyPage();
+      /*
+      let previewdata = previewDataView( rowid )
+      addOverlay('dataview', previewdata);
+      */
+
+      /*
+      let previewdata = buildSurvey( rowid, datalist );
+      addOverlay('dataview', previewdata);
+      runSurvey();
+      */
+
+
+    } // end viewDataRow
+
+
+
+    function editDataView( idx ){
 
       var fields = datalist['fields'];
       var row = datalist[idx];
+      let html = '';
 
-      let html = '<div id="editbox" data-nr="'+idx+'">';
-
+      // editbox
+      html += '<div id="editbox" data-nr="'+idx+'"><h3>Data Edit</h3>';
       $.each(row, function( fieldkey, fieldvalue) {
         if( fieldkey != 'json'){
           html += '<div class="element row" data-nr="'+idx+'" data-field="'+fieldkey+'">';
@@ -169,7 +209,6 @@ jQuery(function($){
       let json = JSON.parse(row['json']); //JSON.stringify();
 
       $.each(json, function( key, value) {
-
         html += '<div data-nr="'+idx+'" class="entry json">';
         $.each(value, function( rkey, rvalue) {
         html += '<div class="element" data-field="'+rkey+'">';
@@ -187,25 +226,24 @@ jQuery(function($){
         html += '</div>';
         });
         html += '</div>';
-
       });
       html += '</div>';
       return html;
     }
 
 
-    function viewDataRow(rowid){
 
-      let data = editDataRow( rowid )
+
+    function editDataRow(rowid){
+      let data = editDataView( rowid )
       addOverlay('dataview', data);
-
     }
 
     function copyDataRow(row){
       var dialog = confirm('copy: '+datalist[row]['id']+'?');
       if (dialog) {
         let toCopy = { 'nr': row };
-  			copyDataList( toCopy );
+  			copyDataListRow( toCopy );
       }
     }
 
@@ -217,9 +255,6 @@ jQuery(function($){
       }
     }
 
-
-
-
     // inline edit datalist
 		$('body').on('click touchstart', '#datalist .inputbox:not(.edit),#editbox .row .inputbox:not(.edit)', function() {
 	    let txt = $(this).html().trim();
@@ -228,6 +263,7 @@ jQuery(function($){
 	    $(this).html(inp);
 			$('body').find('#datalist .inputbox.edit input.textinput,#editbox .row .inputbox.edit input.textinput').select();
 	  });
+
 	  $('body').on('blur', '#datalist .inputbox.edit input.textinput,#editbox .row .inputbox.edit input.textinput', function() {
 	    let txt = $(this).val();
 			let toSave = { 'nr': $(this).parent().parent().data('nr'), 'field': $(this).parent().parent().data('field'), 'content': txt };
@@ -235,17 +271,19 @@ jQuery(function($){
 	    $(this).parent().removeClass('edit').html(txt);
       //if( toSave.field == 'id' ){ //id changed
         let container = $('#datalist').parent();
+        setMessagebox('Saved!', 2000);
+        //alert('saved!');
         setTimeout( function(){
           getTableData( container );
         }, 10);
       //}
 	  });
+
     $('body').on('keyup','#datalist .inputbox.edit input.textinput,#editbox .row .inputbox.edit input.textinput',function(){ // selector ? [contenteditable=true]
         if(event.keyCode==13){
             $(this).blur();
         }
     });
-
 
     // inline edit datalist[row][]'json'] editbox
 		$('body').on('click touchstart', '#editbox .json .inputbox:not(.edit)', function() {
@@ -258,7 +296,6 @@ jQuery(function($){
 	  });
 
 	  $('body').on('blur', '#editbox .json .inputbox.edit input.textinput', function() {
-
 	    let txt = $(this).val();
       let obj = $(this).parent().removeClass('edit').html(txt);
       let json = {};
@@ -280,16 +317,14 @@ jQuery(function($){
       let data = { 'nr': $('#editbox').data('nr'), 'field': 'json', 'content': JSON.stringify(json) };
       //let toSave = JSON.stringify(data); alert( toSave );
 			saveDataList( data );
+
+      setMessagebox('Saved!', 1200);
 	    $(this).parent().removeClass('edit').html(txt);
 
-      //if( toSave.field == 'id'){ //id changed
         let container = $('#datalist').parent();
         setTimeout( function(){
           getTableData( container );
         }, 10);
-      // }
-
-
 
 	  });
 
@@ -299,41 +334,15 @@ jQuery(function($){
         }
     });
 
-
-
-    /* Page layer */
-
-      addOverlay = function( id, content = 'Oooops something is missing..', type = false )
-      {
-        if(!type) type = 'layer'; // box, bar, note
-
-        let layer = $('<div id="'+id+'" style="display:none;" class="overLayScreen '+type+'"><div class="framecontainer outermargin"><div class="contentbox">'+content+'</div><button type=button class="closeOverlay"><span>close</span></button></div></div>');
-
-        if( $('body').find('.overLayScreen').length > 0){
-          $('body').find('.overLayScreen').fadeOut(500, function(){
-            $(this).remove();
-            $('body').append(layer);
-            layer.fadeIn(500);
-          });
-        }else{
-          $('body').append(layer);
-          layer.fadeIn(500);
-        }
-
-      }
-
-      removeOverlay = function(){
-        $('body').find('.overLayScreen').fadeOut(500, function(){
-          $(this).remove();
-        });
-      }
-
-
-
     /* Data row actions */
     $('body').on('click touchstart', '#datalist .entry button.view', function() {
       let row =$(this).closest('tr').data('nr');
       viewDataRow(row);
+    });
+
+    $('body').on('click touchstart', '#datalist .entry button.edit', function() {
+      let row =$(this).closest('tr').data('nr');
+      editDataRow(row);
     });
 
     $('body').on('click touchstart', '#datalist .entry button.copy', function() {
@@ -351,8 +360,11 @@ jQuery(function($){
     });
 
     $('body').on('click touchstart', '.closeOverlay', function() {
+      getTableData( $('#maincontent') );
       removeOverlay();
     });
+
+    getTableData( $('#maincontent') );
 
   }); // end ready
 
