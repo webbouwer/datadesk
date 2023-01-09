@@ -277,6 +277,22 @@ jQuery(function($) {
     }
 
 
+    $('body').on('click', '.emailform .previewemailbutton', function() {
+
+      if( $('#formtype').children("option:selected").val() == 'email'){
+
+          let html = root.surveyEmailcontent();
+          addOverlay('dataview', html);
+ 
+
+      }else{
+
+        alert('custom email preview');
+
+      }
+
+  });
+
 
 
     $('body').on('click', '.emailform .sendbutton', function() {
