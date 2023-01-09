@@ -1,89 +1,89 @@
-<?php require_once('protected.php');
-    /* encryptdata */
-
-    require_once('rwdata.php');
-
-    $activeData = new dataList;
-
-    class dataList{
-
-        private $source;
-        private $filename;
-        private $fields;
-        private $datalist;
-
-        public  function __construct(){
-
-            $this->source = new rwdata;
-            $this->filename = 'datalist.json';
-            $this->datalist = array();
-
-            // check file
-            if (!(file_exists( $this->source->f . $this->filename ))) {
-                $this->setDefaultData();
-            }
-
-            // check file data
-            $arr = $this->source->dataFromFile( $this->filename );
-            if( is_array($arr) && isset($arr['fields']) ){
-                $this->datalist = $arr;
-            }else{
-                $this->setDefaultData();
-            }
-
-            if( isset($_REQUEST['action']) ){
-
-              // save data
-              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'save' ){
-
-                  // replace field value
-                  if( isset($_REQUEST['data']['nr']) && isset($_REQUEST['data']['field']) && isset($_REQUEST['data']['content']) ){
-                    $arr[ $_REQUEST['data']['nr'] ][ $_REQUEST['data']['field'] ] = $_REQUEST['data']['content'];
-          	        $this->source->dataToFile( $arr, $this->filename );
-                  }
-
-              }
-              // copy row data
-              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'copy' ){
-
-                  // replace field value
-                  if( isset($_REQUEST['data']['nr']) ){
-                    $copy = $arr[ $_REQUEST['data']['nr'] ];
-                    $copy['id'] = $copy['id'].'-'. $_REQUEST['data']['nr'];
+<?php require_once('protected.php');
+    /* encryptdata */
+
+    require_once('rwdata.php');
+
+    $activeData = new dataList;
+
+    class dataList{
+
+        private $source;
+        private $filename;
+        private $fields;
+        private $datalist;
+
+        public  function __construct(){
+
+            $this->source = new rwdata;
+            $this->filename = 'datalist.json';
+            $this->datalist = array();
+
+            // check file
+            if (!(file_exists( $this->source->f . $this->filename ))) {
+                $this->setDefaultData();
+            }
+
+            // check file data
+            $arr = $this->source->dataFromFile( $this->filename );
+            if( is_array($arr) && isset($arr['fields']) ){
+                $this->datalist = $arr;
+            }else{
+                $this->setDefaultData();
+            }
+
+            if( isset($_REQUEST['action']) ){
+
+              // save data
+              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'save' ){
+
+                  // replace field value
+                  if( isset($_REQUEST['data']['nr']) && isset($_REQUEST['data']['field']) && isset($_REQUEST['data']['content']) ){
+                    $arr[ $_REQUEST['data']['nr'] ][ $_REQUEST['data']['field'] ] = $_REQUEST['data']['content'];
+          	        $this->source->dataToFile( $arr, $this->filename );
+                  }
+
+              }
+              // copy row data
+              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'copy' ){
+
+                  // replace field value
+                  if( isset($_REQUEST['data']['nr']) ){
+                    $copy = $arr[ $_REQUEST['data']['nr'] ];
+                    $copy['id'] = $copy['id'].'-'. $_REQUEST['data']['nr'];
                     $copy['title'] = $copy['title'].'-'. $_REQUEST['data']['nr'];
                     $copy['desc'] = 'copy-'. $_REQUEST['data']['nr'] .'- '. $copy['desc'];
-                    $arr[] = $copy;
-          	        $this->source->dataToFile( $arr, $this->filename );
-                  }
-
-              }
-              // delete row data
-              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'delete' ){
-
-                  // replace field value
-                  if( isset($_REQUEST['data']['nr']) ){
-                    unset( $arr[ $_REQUEST['data']['nr'] ] );
-          	        $this->source->dataToFile( $arr, $this->filename );
-                  }
-              }
-
-              // add new
-              if( $_REQUEST['action'] == 'new' ){
+                    $arr[] = $copy;
+          	        $this->source->dataToFile( $arr, $this->filename );
+                  }
 
-                  // add new row with fields
-                  $this->defineFields();
-                  $new = $this->fields[1];
-                  $arr[] = $new;
-          	      $this->source->dataToFile( $arr, $this->filename );
-
-              }
-           }
-          //echo json_encode($this->datalist);
-          print_r(json_encode($arr));
-
-        }
-
-        private function defineFields(){
+              }
+              // delete row data
+              if( isset($_REQUEST['data']) && $_REQUEST['action'] == 'delete' ){
+
+                  // replace field value
+                  if( isset($_REQUEST['data']['nr']) ){
+                    unset( $arr[ $_REQUEST['data']['nr'] ] );
+          	        $this->source->dataToFile( $arr, $this->filename );
+                  }
+              }
+
+              // add new
+              if( $_REQUEST['action'] == 'new' ){
+
+                  // add new row with fields
+                  $this->defineFields();
+                  $new = $this->fields[1];
+                  $arr[] = $new;
+          	      $this->source->dataToFile( $arr, $this->filename );
+
+              }
+           }
+          //echo json_encode($this->datalist);
+          print_r(json_encode($arr));
+
+        }
+
+        private function defineFields(){
 
           $json = [
 
@@ -220,21 +220,21 @@
           		];
 
 
-
-          $setup = json_encode($json, true);
-
-          $this->fields = [
-                  'fields' =>
-                  [
-                  'id'=>'Id',
-                  'title'=>'Title',
-                  'subtitle'=>'Sub Title',
-                  'desc'=>'Short desc',
 
-                  'email_salut'=>'Salutation',
+          $setup = json_encode($json, true);
+
+          $this->fields = [
+                  'fields' =>
+                  [
+                  'id'=>'Id',
+                  'title'=>'Title',
+                  'subtitle'=>'Sub Title',
+                  'desc'=>'Short desc',
+
+                  'email_salut'=>'Salutation',
                   'email_regards'=>'Regard',
                   'email_text'=>'Email start',
-                  'email_surveyintro'=>'Email survey intro',
+                  'email_surveyintro'=>'Email survey intro',
                   'email_end'=>'Email end',
 
                   'intro_title'=>'Intro title',
@@ -242,10 +242,10 @@
                   'intro_subtext'=>'Intro sub text',
 
                   'survey_title'=>'Survey title',
-                  'survey_start'=>'Info text',
+                  'survey_start'=>'Info text',
                   'survey_end'=>'Info below text',
                   'survey_disclaimtext1'=>'Disclaim text 1',
-                  'survey_help'=>'Help text',
+                  'survey_help'=>'Help text',
                   'survey_helplink'=>'Help link',
 
                   'survey_complete_title'=> 'Completed title',
@@ -258,14 +258,14 @@
                   'survey_disclaimlinktext'=>'Link text',
                   'survey_disclaimlink'=>'Disclaimer link',
 
-                  'json'=>'Survey Data',
-                  ],
-                  1 =>
-                  [
-                  'id'=>'id',
-                  'title'=>'Header Title',
+                  'json'=>'Survey Data',
+                  ],
+                  1 =>
+                  [
+                  'id'=>'id',
+                  'title'=>'Header Title',
                   'subtitle'=>'Sub Title',
-                  'desc'=>'Short description text',
+                  'desc'=>'Short description text',
 
                   'email_salut'=>'Dear',
                   'email_regards'=>'Best regards',
@@ -294,20 +294,20 @@
                   'survey_disclaimlinktext'=>'Disclaimer',
                   'survey_disclaimlink'=>'#disclaimer',
 
-                  'json'=>$setup,
-
-                  ],
-                ];
-        }
-
-        private function setDefaultData(){
-
-          $this->defineFields();
-          $arr = $this->fields;
-          $this->datalist = $arr;
-	        $this->source->dataToFile( $arr, $this->filename );
-
-        }
-    }
-
-?>
+                  'json'=>$setup,
+
+                  ],
+                ];
+        }
+
+        private function setDefaultData(){
+
+          $this->defineFields();
+          $arr = $this->fields;
+          $this->datalist = $arr;
+	        $this->source->dataToFile( $arr, $this->filename );
+
+        }
+    }
+
+?>
