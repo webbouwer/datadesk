@@ -120,7 +120,7 @@ var surveyEngine = function() {
 
 
   this.getSurveys = function() {
-    let surveyDataUrl = 'components/classes/datalist.php'; // protected
+    let surveyDataUrl = 'components/classes/surveylist.php'; // protected
     $.ajax({
         type: 'POST',
         url: surveyDataUrl,

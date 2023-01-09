@@ -5,14 +5,14 @@ jQuery(function($){
 
     var datalist;
 
-    //var surveyboard = new surveyEngine();
+    var surveyboard = new surveyEngine();
 
-    var dataUrl = 'components/classes/datalist.php'; // protected
+    var dataUrl = 'components/classes/surveylist.php'; // protected
 
     getTableData = function( container = false ){
 
-        //surveyboard.getSurveys();
-        //surveyboard.getProfiles();
+        surveyboard.getSurveys();
+        surveyboard.getProfiles();
 
         $.ajax({
             type: 'POST',
@@ -31,7 +31,7 @@ jQuery(function($){
             if( data['fields'] ){
 
                 datalist = data;
-                //surveyboard.surveydata = data;
+                surveyboard.surveydata = data;
 								let fields = data['fields'];
                 $.each(data, function(idx, obj) {
 
@@ -168,16 +168,16 @@ jQuery(function($){
 
     function viewDataRow(rowid){
 
-      //surveyboard.surveyID = rowid;
-      //surveyboard.profileID = 0;
-      //surveyboard.surveyPagePreview();
+      surveyboard.surveyID = rowid;
+      surveyboard.profileID = 0;
+      surveyboard.surveyPagePreview();
       //let previewdata = surveyboard.surveyPagePreview( rowid, datalist );
       //addOverlay('dataview', previewdata);
       //surveyboard.runSurveyPage();
-      
-      let previewdata = datalist[rowid].desc;
+      /*
+      let previewdata = previewDataView( rowid )
       addOverlay('dataview', previewdata);
-      
+      */
 
       /*
       let previewdata = buildSurvey( rowid, datalist );
@@ -328,7 +328,7 @@ jQuery(function($){
 
 	  });
 
-    $('body').on('keyup','#editbox .json .inputbox.edit input.textinput',function(event){ // selector ? [contenteditable=true]
+    $('body').on('keyup','#editbox .json .inputbox.edit input.textinput',function(){ // selector ? [contenteditable=true]
         if(event.keyCode==13){
             $(this).blur();
         }
