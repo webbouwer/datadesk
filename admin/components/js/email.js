@@ -3,12 +3,6 @@ jQuery(function($) {
 
   $(document).ready(function() {
 
-
-    var profilelist;
-    var surveylist;
-
-    var surveyboard = new surveyEngine();
-
     markupEmailForm = function(container) {
 
       let formtypes = {
@@ -22,8 +16,6 @@ jQuery(function($) {
       formhtml.append('<div class="formrow"><label class="formfield"><span>What to send</span>' + selectTypeBox + '</label></div>');
 
       formhtml.append('<input id="action" name="action" type="hidden" value="email">' +
-        '<input id="surveyid" name="surveyid" type="hidden" value="">' +
-        '<input id="profileid" name="profileid" type="hidden" value="">' +
         '<div class="formrow"><label class="formfield"><span>From name</span><input id="fromName" name="fromName" type="text" placeholder="From Name"></label></div>' +
         '<div class="formrow"><label class="formfield"><span>From email</span><input id="fromEmail" name="fromEmail" type="text" placeholder="From Email-address"></label></div>' +
         '<div class="formrow"><label class="formfield"><span>Recipient name</span><input id="toName" name="toName" type="text" placeholder="To Name"></label></div>'
@@ -41,12 +33,14 @@ jQuery(function($) {
 
       setProfileSelect();
 
+
+
     }
 
 
     var setProfileSelect = function(idx = false) {
 
-      //var profilelist;
+      var profilelist;
       var profileselect = {};
       var selectProfileBox = '';
 
@@ -63,9 +57,7 @@ jQuery(function($) {
       }).done(function(data) {
 
         if (data['fields']) {
-
           profilelist = data;
-          surveyboard.profiledata = data;
           let fields = data['fields'];
           $.each(data, function(idx, obj) {
             if (idx != 'fields') {
@@ -98,17 +90,13 @@ jQuery(function($) {
 
         selectProfileBox = '<div class="formrow profileselect"><label class="formfield"><span>Select Profile</span>' + slcbx + '</label></div>';
         $('.formrow:first-child').after(selectProfileBox);
-        $('input[name="profileid"]').val(slc);
         $('input[name="fromName"]').val(profilelist[slc]['profile']);
         $('input[name="fromEmail"]').val(profilelist[slc]['email_address']);
-
       });
-
     }
 
     var setSurveySelect = function(idx = false) {
-
-      //var surveylist;
+      var surveylist;
       var surveyselect = {};
       var selectSurveyBox = '';
 
@@ -123,10 +111,8 @@ jQuery(function($) {
         },
         dataType: 'json',
       }).done(function(data) {
-
         if (data['fields']) {
           surveylist = data;
-          surveyboard.surveydata = data;
           let fields = data['fields'];
           $.each(data, function(idx, obj) {
             if (idx != 'fields') {
@@ -158,7 +144,6 @@ jQuery(function($) {
         $('#formsurvey').closest('.formrow').remove();
         $('.formrow:nth-child(2)').after(selectSurveyBox);
 
-        $('input[name="surveyid"]').val(slc);
         $('input[name="subjectContent"]').val(surveylist[slc]['title']);
         $('textarea[name="htmlContent"]').val(surveylist[slc]['desc']);
 
@@ -194,6 +179,34 @@ jQuery(function($) {
       }
       return false;
     }
+
+
+    $('body').on('change', '#formtype', function() {
+
+      if( this.value == 'survey'){
+        $('body').find('.emailform').addClass('survey');
+        setSurveySelect();
+        $('input[name="action"]').val('survey');
+
+
+        $('body').on('change', '#formsurvey', function() {
+          setSurveySelect(this.value);
+        });
+      }else{
+        $('body').find('.emailform').removeClass('survey');
+        $('input[name="action"]').val('email');
+        $('input[name="subjectContent"]').val('');
+        $('textarea[name="htmlContent"]').val('');
+      }
+    });
+
+    $('body').on('change', '#formprofile', function() {
+
+      setProfileSelect(this.value);
+
+    });
+
+
 
 
     sendHTMLEmail = function(tosend = false) {
@@ -238,20 +251,6 @@ jQuery(function($) {
 
     function checkBeforeSend(form) {
 
-      // check email type
-      if( form.find('#formtype').children("option:selected").val() == 'email'){
-          // alert('basic email preview');
-          // clear survey id
-          form.find('#surveyid').val('');
-      }/*
-      else{
-        if(form.find('#surveyid') != ''){
-          surveyboard.surveyID = form.find('#surveyid').val();
-          surveyboard.profileID = form.find('#profileid').val();
-        }
-      }
-      */
-      // validate input
       let chk = validateEmailForm(form);
 
       if (chk.status == 'input') {
@@ -267,17 +266,7 @@ jQuery(function($) {
       }
 
       if (chk.status == 'send') {
-
-        let toSend = chk.tosend;
-
-        if(toSend.formtype == 'survey' && toSend.surveyid != '' && toSend.profileid != ''){
-
-          $.extend(toSend, {
-            'survey': surveylist[toSend.surveyid],
-            'profile': profilelist[toSend.profileid],
-          });
-
-        }
+        toSend = chk.tosend;
         //console.log( JSON.stringify(toSend) );
         setMessagebox('Sending email..');
         setTimeout(function() {
@@ -287,31 +276,8 @@ jQuery(function($) {
 
     }
 
-    $('body').on('click', '.emailform .previewemailbutton', function() {
 
-        if( $('#formtype').children("option:selected").val() == 'email'){
-            alert('basic email preview');
-        }else{
-          if($('#surveyid').val() != ''){
 
-            surveyboard.surveyID = $('#surveyid').val();
-            surveyboard.profileID = $('#profileid').val();
-            surveyboard.surveyEmailPreview();
-
-          }
-        }
-
-    });
-
-    $('body').on('click', '.emailform .previewsurveybutton', function() {
-        if($('#surveyid').val() != ''){
-
-          surveyboard.surveyID = $('#surveyid').val();
-          surveyboard.profileID = $('#profileid').val();
-          surveyboard.surveyPagePreview();
-
-        }
-    });
 
     $('body').on('click', '.emailform .sendbutton', function() {
 
@@ -320,42 +286,7 @@ jQuery(function($) {
 
     });
 
-    $('body').on('click touchstart', '.closeOverlay', function() {
-      removeOverlay();
-    });
-
-
-
-    $('body').on('change', '#formtype', function() {
-
-          if( this.value == 'survey'){
-            $('body').find('.emailform').addClass('survey');
-            setSurveySelect();
-            $('input[name="action"]').val('survey');
-
-          $('body').on('change', '#formsurvey', function() {
-              setSurveySelect(this.value);
-            });
-          }else{
-            $('body').find('.emailform').removeClass('survey');
-            $('input[name="action"]').val('email');
-            $('input[name="subjectContent"]').val('');
-            $('textarea[name="htmlContent"]').val('');
-          }
-    });
-
-    $('body').on('change', '#formprofile', function() {
-      setProfileSelect(this.value);
-    });
-
     markupEmailForm($('#maincontent')); //
-
-    // switch to survey at start
-    let opt = $('#formtype');
-    opt[0].selectedIndex = 1; // make selection
-    opt[0].focus(); // set the focus
-    opt.trigger('change');
-    opt[0].blur();
 
   }); // end ready
 
