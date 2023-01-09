@@ -1,11 +1,6 @@
 <?php /* markup html to send by email */
 require_once('rwdata.php');
 
-// markup functions
-function markupEmailHTML( $content ){
-  $html = $content;
-  return $html;
-}
 
 function markupSurveyHTML( $activeid, $toname, $toemail, $pid, $profile, $sid, $survey ){
 

@@ -13,6 +13,7 @@ use PHPMailer\PHPMailer\Exception;
 require '../lib/PHPMailer/src/Exception.php';
 require '../lib/PHPMailer/src/PHPMailer.php';
 //require '../lib/PHPMailer/src/SMTP.php';
+require '../lib/util/markupEmail.php';
 require '../lib/util/markupSurvey.php';
 
 $result = []; // result of sending email
